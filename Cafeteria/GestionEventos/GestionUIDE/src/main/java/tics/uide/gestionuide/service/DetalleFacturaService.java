@@ -1,0 +1,52 @@
+package tics.uide.gestionuide.service;
+
+import java.util.List;
+import javax.transaction.Transactional;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import tics.uide.gestionuide.exception.NotFoundException;
+import tics.uide.gestionuide.model.DetalleFactura;
+import tics.uide.gestionuide.model.Factura;
+import tics.uide.gestionuide.model.Producto;
+import tics.uide.gestionuide.repository.DetalleFacturaRepository;
+
+@Service
+@Transactional
+public class DetalleFacturaService {
+
+    @Autowired
+    private DetalleFacturaRepository detalleFacturaRepository;
+
+    public DetalleFactura crear(Factura factura, Producto producto, Double cantidad) {
+        DetalleFactura detalle = DetalleFactura.builder()
+                .factura(factura)
+                .producto(producto)
+                .cantidad(cantidad)
+                .precioUnitario(producto.getPrecio())
+                .subtotal(cantidad * producto.getPrecio())
+                .build();
+
+        return detalleFacturaRepository.save(detalle);
+    }
+
+    public DetalleFactura actualizar(Long id, Double nuevaCantidad) {
+        DetalleFactura detalle = buscarPorId(id);
+        detalle.setCantidad(nuevaCantidad);
+        detalle.setSubtotal(nuevaCantidad * detalle.getPrecioUnitario());
+        return detalleFacturaRepository.save(detalle);
+    }
+
+    public void eliminar(Long id) {
+        DetalleFactura detalle = buscarPorId(id);
+        detalleFacturaRepository.delete(detalle);
+    }
+
+    public DetalleFactura buscarPorId(Long id) {
+        return detalleFacturaRepository.findById(id)
+                .orElseThrow(() -> new NotFoundException("Detalle de factura no encontrado con ID: " + id));
+    }
+
+    public List<DetalleFactura> listarPorFactura(Long facturaId) {
+        return detalleFacturaRepository.findByFactura_Id(facturaId);
+    }
+}
