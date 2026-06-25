@@ -7,15 +7,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import tics.uide.gestionuide.dto.LoginDto;
-import tics.uide.gestionuide.dto.UsuarioRegistroDto;
-import tics.uide.gestionuide.exception.BadRequestException;
-import tics.uide.gestionuide.model.EmailVerificationToken;
-import tics.uide.gestionuide.model.Usuario;
-import tics.uide.gestionuide.repository.EmailVerificationTokenRepository;
-import tics.uide.gestionuide.service.EmailService;
-import tics.uide.gestionuide.service.EmailVerificationService;
-import tics.uide.gestionuide.service.UsuarioService;
+import com.cafeteria.app.dto.LoginDto;
+import com.cafeteria.app.dto.UsuarioRegistroDto;
+import com.cafeteria.app.exception.BadRequestException;
+import com.cafeteria.app.model.EmailVerificationToken;
+import com.cafeteria.app.model.Usuario;
+import com.cafeteria.app.repository.EmailVerificationTokenRepository;
+import com.cafeteria.app.service.EmailService;
+import com.cafeteria.app.service.EmailVerificationService;
+import com.cafeteria.app.service.UsuarioService;
 
 import java.util.Date;
 import java.util.UUID;
@@ -26,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests de integración de la verificación de correo (doble opt-in).
  * EmailService se mockea para no enviar SMTP real y capturar el token crudo del enlace.
  */
-@SpringBootTest(classes = tics.uide.gestionuide.GestionUIDE.class)
+@SpringBootTest(classes = com.cafeteria.app.CafeteriaApp.class)
 public class EmailVerificationServiceTest {
 
     @Autowired private EmailVerificationService emailVerificationService;

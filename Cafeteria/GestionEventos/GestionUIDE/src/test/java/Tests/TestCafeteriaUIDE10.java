@@ -5,16 +5,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.annotation.DirtiesContext;
 
-import tics.uide.gestionuide.dto.*;
-import tics.uide.gestionuide.enums.*;
-import tics.uide.gestionuide.exception.BadRequestException;
-import tics.uide.gestionuide.model.*;
-import tics.uide.gestionuide.service.*;
+import com.cafeteria.app.dto.*;
+import com.cafeteria.app.enums.*;
+import com.cafeteria.app.exception.BadRequestException;
+import com.cafeteria.app.model.*;
+import com.cafeteria.app.service.*;
 
 import javax.validation.ConstraintViolationException;
 import java.util.*;
 
-@SpringBootTest(classes = tics.uide.gestionuide.GestionUIDE.class)
+@SpringBootTest(classes = com.cafeteria.app.CafeteriaApp.class)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @DirtiesContext(classMode = DirtiesContext.ClassMode.AFTER_CLASS)
 public class TestCafeteriaUIDE10 {

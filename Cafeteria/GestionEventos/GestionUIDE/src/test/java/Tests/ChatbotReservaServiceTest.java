@@ -6,15 +6,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import tics.uide.gestionuide.dto.*;
-import tics.uide.gestionuide.enums.EstadoReserva;
-import tics.uide.gestionuide.model.Reserva;
-import tics.uide.gestionuide.model.Usuario;
-import tics.uide.gestionuide.service.ChatbotReservaService;
-import tics.uide.gestionuide.service.GeminiClient;
-import tics.uide.gestionuide.service.MesaService;
-import tics.uide.gestionuide.service.ReservaService;
-import tics.uide.gestionuide.service.UsuarioService;
+import com.cafeteria.app.dto.*;
+import com.cafeteria.app.enums.EstadoReserva;
+import com.cafeteria.app.model.Reserva;
+import com.cafeteria.app.model.Usuario;
+import com.cafeteria.app.service.ChatbotReservaService;
+import com.cafeteria.app.service.GeminiClient;
+import com.cafeteria.app.service.MesaService;
+import com.cafeteria.app.service.ReservaService;
+import com.cafeteria.app.service.UsuarioService;
 
 import java.util.List;
 import java.util.UUID;
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Chatbot Etapa 2: la frontera de confianza. Gemini SIEMPRE mockeado (nunca real).
  * Gemini PROPONE; el backend DISPONE: ningún dato llega a la reserva sin validar, el usuario sale del token.
  */
-@SpringBootTest(classes = tics.uide.gestionuide.GestionUIDE.class)
+@SpringBootTest(classes = com.cafeteria.app.CafeteriaApp.class)
 public class ChatbotReservaServiceTest {
 
     @Autowired private ChatbotReservaService chatbotReservaService;

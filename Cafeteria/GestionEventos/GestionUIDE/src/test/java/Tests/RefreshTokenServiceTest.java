@@ -7,16 +7,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 
-import tics.uide.gestionuide.dto.UsuarioRegistroDto;
-import tics.uide.gestionuide.exception.BadRequestException;
-import tics.uide.gestionuide.model.RefreshToken;
-import tics.uide.gestionuide.model.Usuario;
-import tics.uide.gestionuide.repository.RefreshTokenRepository;
-import tics.uide.gestionuide.service.EmailService;
-import tics.uide.gestionuide.service.PasswordResetService;
-import tics.uide.gestionuide.service.RefreshTokenService;
-import tics.uide.gestionuide.service.UsuarioService;
-import tics.uide.gestionuide.util.Tokens;
+import com.cafeteria.app.dto.UsuarioRegistroDto;
+import com.cafeteria.app.exception.BadRequestException;
+import com.cafeteria.app.model.RefreshToken;
+import com.cafeteria.app.model.Usuario;
+import com.cafeteria.app.repository.RefreshTokenRepository;
+import com.cafeteria.app.service.EmailService;
+import com.cafeteria.app.service.PasswordResetService;
+import com.cafeteria.app.service.RefreshTokenService;
+import com.cafeteria.app.service.UsuarioService;
+import com.cafeteria.app.util.Tokens;
 
 import java.util.Date;
 import java.util.UUID;
@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Tests de integración de refresh tokens: rotación, revocación, detección de reuso,
  * y revocación de todas las sesiones tras un reset de contraseña.
  */
-@SpringBootTest(classes = tics.uide.gestionuide.GestionUIDE.class)
+@SpringBootTest(classes = com.cafeteria.app.CafeteriaApp.class)
 public class RefreshTokenServiceTest {
 
     @Autowired private RefreshTokenService refreshTokenService;

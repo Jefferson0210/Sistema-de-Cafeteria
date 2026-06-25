@@ -6,14 +6,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import tics.uide.gestionuide.dto.*;
-import tics.uide.gestionuide.enums.Rol;
-import tics.uide.gestionuide.enums.ModoCuenta;
-import tics.uide.gestionuide.model.Pedido;
-import tics.uide.gestionuide.model.Producto;
-import tics.uide.gestionuide.model.Usuario;
-import tics.uide.gestionuide.service.*;
-import tics.uide.gestionuide.event.PedidoEvento;
+import com.cafeteria.app.dto.*;
+import com.cafeteria.app.enums.Rol;
+import com.cafeteria.app.enums.ModoCuenta;
+import com.cafeteria.app.model.Pedido;
+import com.cafeteria.app.model.Producto;
+import com.cafeteria.app.model.Usuario;
+import com.cafeteria.app.service.*;
+import com.cafeteria.app.event.PedidoEvento;
 import org.springframework.boot.test.context.TestConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Import;
@@ -32,7 +32,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * sino la garantía que importa: el canal NUNCA puede tumbar la creación de un pedido, y los emitters
  * que fallan se purgan del registro.
  */
-@SpringBootTest(classes = tics.uide.gestionuide.GestionUIDE.class)
+@SpringBootTest(classes = com.cafeteria.app.CafeteriaApp.class)
 @Import(CocinaNotificationTest.CaptureConfig.class)
 public class CocinaNotificationTest {
 

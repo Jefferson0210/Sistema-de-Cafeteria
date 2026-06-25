@@ -9,15 +9,15 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import tics.uide.gestionuide.dto.*;
-import tics.uide.gestionuide.enums.EstadoPedido;
-import tics.uide.gestionuide.enums.MetodoPago;
-import tics.uide.gestionuide.enums.Rol;
-import tics.uide.gestionuide.model.Factura;
-import tics.uide.gestionuide.model.Pedido;
-import tics.uide.gestionuide.model.Producto;
-import tics.uide.gestionuide.model.Usuario;
-import tics.uide.gestionuide.service.*;
+import com.cafeteria.app.dto.*;
+import com.cafeteria.app.enums.EstadoPedido;
+import com.cafeteria.app.enums.MetodoPago;
+import com.cafeteria.app.enums.Rol;
+import com.cafeteria.app.model.Factura;
+import com.cafeteria.app.model.Pedido;
+import com.cafeteria.app.model.Producto;
+import com.cafeteria.app.model.Usuario;
+import com.cafeteria.app.service.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -31,7 +31,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * (token emitido por /api/auth/login). Blindan los arreglos de seguridad:
  * control de acceso por rol, IDOR (self-or-staff) y anti auto-asignación de roles.
  */
-@SpringBootTest(classes = tics.uide.gestionuide.GestionUIDE.class)
+@SpringBootTest(classes = com.cafeteria.app.CafeteriaApp.class)
 @AutoConfigureMockMvc
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 // Este test hace muchos logins HTTP en el seed; desactivamos el rate limiting para no toparlo.

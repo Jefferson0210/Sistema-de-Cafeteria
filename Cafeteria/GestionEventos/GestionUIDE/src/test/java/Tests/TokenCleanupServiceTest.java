@@ -5,17 +5,17 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.TestPropertySource;
 
-import tics.uide.gestionuide.dto.UsuarioRegistroDto;
-import tics.uide.gestionuide.model.EmailVerificationToken;
-import tics.uide.gestionuide.model.PasswordResetToken;
-import tics.uide.gestionuide.model.RefreshToken;
-import tics.uide.gestionuide.model.Usuario;
-import tics.uide.gestionuide.repository.EmailVerificationTokenRepository;
-import tics.uide.gestionuide.repository.PasswordResetTokenRepository;
-import tics.uide.gestionuide.repository.RefreshTokenRepository;
-import tics.uide.gestionuide.service.TokenCleanupService;
-import tics.uide.gestionuide.service.UsuarioService;
-import tics.uide.gestionuide.util.Tokens;
+import com.cafeteria.app.dto.UsuarioRegistroDto;
+import com.cafeteria.app.model.EmailVerificationToken;
+import com.cafeteria.app.model.PasswordResetToken;
+import com.cafeteria.app.model.RefreshToken;
+import com.cafeteria.app.model.Usuario;
+import com.cafeteria.app.repository.EmailVerificationTokenRepository;
+import com.cafeteria.app.repository.PasswordResetTokenRepository;
+import com.cafeteria.app.repository.RefreshTokenRepository;
+import com.cafeteria.app.service.TokenCleanupService;
+import com.cafeteria.app.service.UsuarioService;
+import com.cafeteria.app.util.Tokens;
 
 import java.util.Date;
 import java.util.UUID;
@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Verifica que se borran los caducados y permanecen los vigentes y los RECIENTES
  * (incluido el refresh REVOCADO reciente, que preserva la detección de reuso).
  */
-@SpringBootTest(classes = tics.uide.gestionuide.GestionUIDE.class)
+@SpringBootTest(classes = com.cafeteria.app.CafeteriaApp.class)
 @TestPropertySource(properties = {
         "app.token-cleanup.enabled=true",
         "app.token-cleanup.grace-days=1"

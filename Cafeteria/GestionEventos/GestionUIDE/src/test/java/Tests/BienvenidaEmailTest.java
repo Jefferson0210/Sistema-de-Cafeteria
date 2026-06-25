@@ -9,7 +9,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.test.context.TestPropertySource;
 
-import tics.uide.gestionuide.service.EmailService;
+import com.cafeteria.app.service.EmailService;
 
 import javax.mail.Multipart;
 import javax.mail.Session;
@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * El correo de bienvenida debe usar la frontendUrl CONFIGURABLE (no el localhost:3000 hardcodeado).
  * Inyecta una frontendUrl de prueba vía @TestPropertySource y verifica el HTML del correo.
  */
-@SpringBootTest(classes = tics.uide.gestionuide.GestionUIDE.class)
+@SpringBootTest(classes = com.cafeteria.app.CafeteriaApp.class)
 @TestPropertySource(properties = "app.frontend.url=https://cafe.example.com")
 public class BienvenidaEmailTest {
 

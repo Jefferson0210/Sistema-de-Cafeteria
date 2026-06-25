@@ -4,9 +4,9 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import tics.uide.gestionuide.dto.ApiResponse;
-import tics.uide.gestionuide.exception.BadRequestException;
-import tics.uide.gestionuide.exception.GlobalExceptionHandler;
+import com.cafeteria.app.dto.ApiResponse;
+import com.cafeteria.app.exception.BadRequestException;
+import com.cafeteria.app.exception.GlobalExceptionHandler;
 
 import static org.junit.jupiter.api.Assertions.*;
 

@@ -12,11 +12,11 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import tics.uide.gestionuide.dto.GeminiResultado;
-import tics.uide.gestionuide.dto.UsuarioRegistroDto;
-import tics.uide.gestionuide.model.Usuario;
-import tics.uide.gestionuide.service.GeminiClient;
-import tics.uide.gestionuide.service.UsuarioService;
+import com.cafeteria.app.dto.GeminiResultado;
+import com.cafeteria.app.dto.UsuarioRegistroDto;
+import com.cafeteria.app.model.Usuario;
+import com.cafeteria.app.service.GeminiClient;
+import com.cafeteria.app.service.UsuarioService;
 
 import java.util.Map;
 import java.util.UUID;
@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Chatbot Etapa 1 (endpoint). Mockea GeminiClient (no se llama a Gemini real: sería lento, costaría
  * dinero y dependería de la red). Rate limiting desactivado aquí para no interferir con login/chatbot.
  */
-@SpringBootTest(classes = tics.uide.gestionuide.GestionUIDE.class)
+@SpringBootTest(classes = com.cafeteria.app.CafeteriaApp.class)
 @AutoConfigureMockMvc
 @TestPropertySource(properties = "app.ratelimit.enabled=false")
 public class ChatbotTest {

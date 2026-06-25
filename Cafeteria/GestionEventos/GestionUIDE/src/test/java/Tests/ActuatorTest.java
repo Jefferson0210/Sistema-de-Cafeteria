@@ -13,7 +13,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Actuator: solo el healthcheck es público (UP/DOWN, sin detalle); cualquier otro endpoint
  * (p.ej. /env, que filtraría secretos) NO es accesible ni expuesto.
  */
-@SpringBootTest(classes = tics.uide.gestionuide.GestionUIDE.class)
+@SpringBootTest(classes = com.cafeteria.app.CafeteriaApp.class)
 @AutoConfigureMockMvc
 public class ActuatorTest {
 

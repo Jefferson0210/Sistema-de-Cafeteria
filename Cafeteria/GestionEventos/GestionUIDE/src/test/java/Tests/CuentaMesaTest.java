@@ -4,16 +4,16 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
-import tics.uide.gestionuide.dto.*;
-import tics.uide.gestionuide.enums.EstadoMesa;
-import tics.uide.gestionuide.enums.EstadoPedido;
-import tics.uide.gestionuide.enums.ModoCuenta;
-import tics.uide.gestionuide.enums.Rol;
-import tics.uide.gestionuide.exception.BadRequestException;
-import tics.uide.gestionuide.model.Mesa;
-import tics.uide.gestionuide.model.Pedido;
-import tics.uide.gestionuide.model.Usuario;
-import tics.uide.gestionuide.service.*;
+import com.cafeteria.app.dto.*;
+import com.cafeteria.app.enums.EstadoMesa;
+import com.cafeteria.app.enums.EstadoPedido;
+import com.cafeteria.app.enums.ModoCuenta;
+import com.cafeteria.app.enums.Rol;
+import com.cafeteria.app.exception.BadRequestException;
+import com.cafeteria.app.model.Mesa;
+import com.cafeteria.app.model.Pedido;
+import com.cafeteria.app.model.Usuario;
+import com.cafeteria.app.service.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -25,7 +25,7 @@ import static org.junit.jupiter.api.Assertions.*;
  * Cuenta por mesa (QR) — Etapa 1: modo SEPARADA + liberación consciente del modo.
  * Incluye la REGRESIÓN del pago normal (mesero) y la liberación parcial en SEPARADA.
  */
-@SpringBootTest(classes = tics.uide.gestionuide.GestionUIDE.class)
+@SpringBootTest(classes = com.cafeteria.app.CafeteriaApp.class)
 public class CuentaMesaTest {
 
     @Autowired private PedidoService pedidoService;

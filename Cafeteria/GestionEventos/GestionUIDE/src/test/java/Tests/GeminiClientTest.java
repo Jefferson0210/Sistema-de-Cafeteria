@@ -8,8 +8,8 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.client.MockRestServiceServer;
 import org.springframework.web.client.RestTemplate;
 
-import tics.uide.gestionuide.dto.GeminiResultado;
-import tics.uide.gestionuide.service.GeminiClient;
+import com.cafeteria.app.dto.GeminiResultado;
+import com.cafeteria.app.service.GeminiClient;
 
 import java.io.IOException;
 import java.util.List;

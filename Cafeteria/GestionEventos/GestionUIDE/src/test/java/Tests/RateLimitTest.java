@@ -20,7 +20,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Rate limiting con su PROPIO @TestPropertySource (enabled=true + límites bajos), aislado del resto.
  * Cada método usa IP/email distintos para que sus contadores no interfieran entre sí.
  */
-@SpringBootTest(classes = tics.uide.gestionuide.GestionUIDE.class)
+@SpringBootTest(classes = com.cafeteria.app.CafeteriaApp.class)
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
         "app.ratelimit.enabled=true",

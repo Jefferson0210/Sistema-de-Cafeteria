@@ -12,11 +12,11 @@ import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 
-import tics.uide.gestionuide.dto.GeminiResultado;
-import tics.uide.gestionuide.dto.UsuarioRegistroDto;
-import tics.uide.gestionuide.model.Usuario;
-import tics.uide.gestionuide.service.GeminiClient;
-import tics.uide.gestionuide.service.UsuarioService;
+import com.cafeteria.app.dto.GeminiResultado;
+import com.cafeteria.app.dto.UsuarioRegistroDto;
+import com.cafeteria.app.model.Usuario;
+import com.cafeteria.app.service.GeminiClient;
+import com.cafeteria.app.service.UsuarioService;
 
 import java.util.Map;
 import java.util.UUID;
@@ -28,7 +28,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
  * Rate limit del chatbot: con per-user-max=2, el 3er mensaje del mismo usuario → 429 + Retry-After.
  * Rate limiting ENABLED, pero login generoso para poder autenticarse.
  */
-@SpringBootTest(classes = tics.uide.gestionuide.GestionUIDE.class)
+@SpringBootTest(classes = com.cafeteria.app.CafeteriaApp.class)
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
         "app.ratelimit.enabled=true",

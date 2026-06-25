@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(awk -F: '{s+=$2} END {print s}')",
+      "Bash(set -e)",
+      "Bash(rm -f src/test/java/Tests/WSTests.java src/test/java/Tests/Tests.java src/test/java/Tests/TestCompletoCafeteriaFull.java src/test/java/tics/uide/gestionuide/TestDatosPrueba.java)",
+      "Bash(mv src/main/java/tics/uide/gestionuide/* src/main/java/com/cafeteria/app/)",
+      "Bash(xargs -0 sed -i 's/GestionUIDE/CafeteriaApp/g')",
+      "Bash(xargs -0 sed -i 's/tics\\\\.uide\\\\.gestionuide/com.cafeteria.app/g')",
+      "Bash(sed -i 's/GestionUIDE/CafeteriaApp/g; s/tics\\\\.uide\\\\.gestionuide/com.cafeteria.app/g' nbactions.xml)",
+      "Bash(sed -i 's/logging\\\\.level\\\\.tics\\\\.uide\\\\.gestionuide/logging.level.com.cafeteria.app/' src/main/resources/application.properties)",
+      "Bash(sed -i 's#<groupId>tics.uide.gestionuide</groupId>#<groupId>com.cafeteria</groupId>#' pom.xml)",
+      "Bash(sed -i 's#<artifactId>gestionUIDE</artifactId>#<artifactId>cafeteria-app</artifactId>#' pom.xml)"
+    ]
+  }
+}
