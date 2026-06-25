@@ -103,6 +103,8 @@ public class GestionUIDE {
                     // Actuator: solo el healthcheck es público; el resto, denegado (doble capa con la whitelist de exposición)
                     .antMatchers(HttpMethod.GET, "/actuator/health").permitAll()
                     .antMatchers("/actuator/**").denyAll()
+                    // Chatbot de reservas: CLIENTE autenticado (y staff)
+                    .antMatchers("/api/chatbot/**").hasAnyAuthority("CLIENTE", "ADMIN", "MESERO")
                     // Todo lo demás requiere autenticación
                     .antMatchers("/api/**").authenticated()
                 .anyRequest().permitAll()

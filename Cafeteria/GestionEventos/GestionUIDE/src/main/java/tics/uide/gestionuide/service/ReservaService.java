@@ -1,7 +1,9 @@
 package tics.uide.gestionuide.service;
 
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Optional;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,7 @@ import tics.uide.gestionuide.exception.NotFoundException;
 import tics.uide.gestionuide.model.Mesa;
 import tics.uide.gestionuide.model.Reserva;
 import tics.uide.gestionuide.model.Usuario;
+import tics.uide.gestionuide.repository.MesaRepository;
 import tics.uide.gestionuide.repository.ReservaRepository;
 
 @Service
@@ -25,6 +28,8 @@ public class ReservaService {
     private MesaService mesaService;
     @Autowired
     private UsuarioService usuarioService;
+    @Autowired
+    private MesaRepository mesaRepository;
 
     public Reserva crear(CrearReservaDto dto, Long usuarioId) {
         Usuario usuario = usuarioService.buscarPorId(usuarioId);
@@ -74,6 +79,17 @@ public class ReservaService {
     public List<Reserva> listarPorUsuario(Long uid) { return reservaRepository.findByUsuario_Id(uid); }
     public List<Reserva> listarPorMesa(Long mid) { return reservaRepository.findByMesa_Id(mid); }
     public List<Reserva> listarPorEstado(EstadoReserva e) { return reservaRepository.findByEstado(e); }
+
+    /**
+     * Selecciona la mesa MÁS PEQUEÑA (capacidad) activa, con capacidad >= numPersonas y libre a esa hora.
+     * Reusa mesaDisponible. Devuelve vacío si no hay ninguna -> el chatbot rechaza con mensaje claro.
+     */
+    public Optional<Mesa> seleccionarMesaDisponible(Integer numPersonas, Date fecha, Integer duracion) {
+        return mesaRepository.findByCapacidadGreaterThanEqualAndActivoTrue(numPersonas).stream()
+                .sorted(Comparator.comparingInt(Mesa::getCapacidad))
+                .filter(m -> mesaDisponible(m.getId(), fecha, duracion))
+                .findFirst();
+    }
 
     public boolean mesaDisponible(Long mesaId, Date fecha, Integer duracion) {
         Mesa mesa = mesaService.buscarPorId(mesaId);

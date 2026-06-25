@@ -31,6 +31,8 @@ public class RateLimitService {
     @Value("${app.ratelimit.reenviar.per-email-max:3}") private int reenviarEmailMax;
     @Value("${app.ratelimit.verificar-email.max:10}")  private int verificarEmailMax;
     @Value("${app.ratelimit.refresh.max:30}")          private int refreshMax;
+    @Value("${app.ratelimit.chatbot.max:20}")          private int chatbotMax;
+    @Value("${app.ratelimit.chatbot.per-user-max:10}") private int chatbotPerUserMax;
 
     private final ConcurrentHashMap<String, Ventana> contadores = new ConcurrentHashMap<>();
 
@@ -93,6 +95,7 @@ public class RateLimitService {
             case "reenviar":        return reenviarMax;
             case "verificar-email": return verificarEmailMax;
             case "refresh":         return refreshMax;
+            case "chatbot":         return chatbotMax;
             default:                return Integer.MAX_VALUE;
         }
     }
@@ -102,6 +105,7 @@ public class RateLimitService {
             case "login":     return loginEmailMax;
             case "recuperar": return recuperarEmailMax;
             case "reenviar":  return reenviarEmailMax;
+            case "chatbot":   return chatbotPerUserMax;
             default:          return 0;
         }
     }
