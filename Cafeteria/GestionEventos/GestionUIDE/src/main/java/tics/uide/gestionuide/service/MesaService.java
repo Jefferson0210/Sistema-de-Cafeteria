@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tics.uide.gestionuide.dto.MesaDto;
 import tics.uide.gestionuide.enums.EstadoMesa;
+import tics.uide.gestionuide.enums.ModoCuenta;
 import tics.uide.gestionuide.exception.BadRequestException;
 import tics.uide.gestionuide.exception.NotFoundException;
 import tics.uide.gestionuide.model.Mesa;
@@ -87,6 +88,21 @@ public class MesaService {
         }
 
         mesa.setEstado(nuevoEstado);
+        return mesaRepository.save(mesa);
+    }
+
+    /** Fija el modo de cuenta de la sesión (primer escaneo). */
+    public Mesa fijarModo(Long id, ModoCuenta modo) {
+        Mesa mesa = buscarPorId(id);
+        mesa.setModoCuenta(modo);
+        return mesaRepository.save(mesa);
+    }
+
+    /** Cierra la sesión: libera la mesa (LIBRE) y resetea el modo de cuenta. */
+    public Mesa liberar(Long id) {
+        Mesa mesa = buscarPorId(id);
+        mesa.setEstado(EstadoMesa.LIBRE);
+        mesa.setModoCuenta(null);
         return mesaRepository.save(mesa);
     }
 }

@@ -2,6 +2,7 @@ package tics.uide.gestionuide.dto;
 
 import com.fasterxml.jackson.annotation.JsonAlias;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Positive;
@@ -35,7 +36,7 @@ public class ProductoDto implements Serializable {
 
     @NotNull(message = "El precio es obligatorio")
     @Positive(message = "El precio debe ser positivo")
-    private Double precio;
+    private BigDecimal precio;
 
     private Long categoryId;
 

@@ -2,10 +2,12 @@ package tics.uide.gestionuide.exception;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.UUID;
 import javax.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -66,11 +68,11 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse(false, msg, null));
     }
 
-    // Constraint violations → 400
+    // Constraint violations → 400 (sin ex.getMessage(): puede exponer property-paths internos)
     @ExceptionHandler(ConstraintViolationException.class)
     public ResponseEntity<ApiResponse> handleConstraint(ConstraintViolationException ex) {
         return ResponseEntity.badRequest()
-                .body(new ApiResponse(false, "Validación fallida: " + ex.getMessage(), null));
+                .body(new ApiResponse(false, "Validación fallida", null));
     }
 
     // Bad JSON → 400
@@ -95,11 +97,30 @@ public class GlobalExceptionHandler {
                 .body(new ApiResponse(false, "Error de integridad de datos. Revise duplicados o referencias.", null));
     }
 
-    // Catch-all → 500
+    // Acceso denegado por @PreAuthorize / method security → 403 (no 500).
+    // Más específico que el catch-all Exception, así que Spring lo prefiere.
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<ApiResponse> handleAccessDenied(AccessDeniedException ex) {
+        return ResponseEntity.status(HttpStatus.FORBIDDEN)
+                .body(new ApiResponse(false, "No autorizado para esta acción", null));
+    }
+
+    // Rate limit excedido (por email) → 429 + Retry-After
+    @ExceptionHandler(TooManyRequestsException.class)
+    public ResponseEntity<ApiResponse> handleTooMany(TooManyRequestsException ex) {
+        return ResponseEntity.status(HttpStatus.TOO_MANY_REQUESTS)
+                .header("Retry-After", String.valueOf(ex.getRetryAfterSeconds()))
+                .body(new ApiResponse(false, ex.getMessage(), null));
+    }
+
+    // Catch-all → 500. El cliente ve un mensaje genérico + un ref; el log guarda el stacktrace
+    // completo con el MISMO ref para diagnóstico. Nunca se filtra ex.getMessage() ni el stacktrace.
     @ExceptionHandler(Exception.class)
     public ResponseEntity<ApiResponse> handleGeneric(Exception ex) {
-        logger.error("Error no controlado", ex);
+        String ref = UUID.randomUUID().toString().substring(0, 8);
+        logger.error("Error no controlado [ref={}]", ref, ex);
         return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new ApiResponse(false, "Error interno: " + ex.getMessage(), null));
+                .body(new ApiResponse(false,
+                        "Ha ocurrido un error interno. Si persiste, contacta soporte (ref: " + ref + ")", null));
     }
 }

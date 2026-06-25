@@ -14,7 +14,6 @@ import tics.uide.gestionuide.model.Empresa;
 import tics.uide.gestionuide.service.EmpresaService;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/empresas")
 public class EmpresaWS {
 

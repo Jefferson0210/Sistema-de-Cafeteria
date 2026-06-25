@@ -3,9 +3,11 @@ package tics.uide.gestionuide.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
+import tics.uide.gestionuide.util.Money;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -46,7 +48,7 @@ public class Empresa implements Serializable {
     
     @Builder.Default
     @Column(precision = 5, scale = 2)
-    private Double iva = 15.0;
+    private BigDecimal iva = Money.of(15.0);
     
     @Size(max = 200, message = "La dirección no puede exceder 200 caracteres")
     @Column(length = 200)
@@ -92,7 +94,7 @@ public class Empresa implements Serializable {
             activo = true;
         }
         if (iva == null) {
-            iva = 15.0; 
+            iva = Money.of(15.0);
         }
     }
     
@@ -102,11 +104,11 @@ public class Empresa implements Serializable {
     }
     
     // Getter manual para iva (por si Lombok falla)
-    public Double getIva() {
+    public BigDecimal getIva() {
         return iva;
     }
-    
-    public void setIva(Double iva) {
+
+    public void setIva(BigDecimal iva) {
         this.iva = iva;
     }
 }

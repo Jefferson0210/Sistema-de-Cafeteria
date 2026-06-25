@@ -5,8 +5,15 @@ backend/*.log
 *.jar
 *.war
 
-# Credenciales - MUY IMPORTANTE
-backend/src/main/resources/application.properties
+# ===== SECRETOS / CREDENCIALES =====
+# application.properties se versiona SOLO con placeholders (${VAR}); los valores
+# reales se inyectan por variables de entorno (ver .env.example).
+# Nunca versionar archivos con secretos reales:
+.env
+.env.*
+!.env.example
+src/main/resources/application-local.properties
+src/main/resources/application-secret.properties
 
 # ===== REACT NATIVE / EXPO =====
 frontend/node_modules/

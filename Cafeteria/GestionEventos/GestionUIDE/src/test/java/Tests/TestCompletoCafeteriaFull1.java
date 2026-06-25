@@ -166,7 +166,7 @@ public class TestCompletoCafeteriaFull1 {
         ProductoDto dto = ProductoDto.builder()
                 .nombre(nombre)
                 .descripcion(descripcion)
-                .precio(precio)
+                .precio(java.math.BigDecimal.valueOf(precio))
                 .stock(stock)
                 .disponible(true)
                 .imagenUrl(imagen)
@@ -593,7 +593,7 @@ public class TestCompletoCafeteriaFull1 {
         Pedido pedido1 = pedidoService.crear(dto);
         Assertions.assertNotNull(pedido1, "Pedido 1 no debe ser null");
         pedido1Id = pedido1.getId();
-        Assertions.assertTrue(pedido1.getTotal() > 0, "Total pedido 1 debe ser > 0");
+        Assertions.assertTrue(pedido1.getTotal().signum() > 0, "Total pedido 1 debe ser > 0");
 
         // Total esperado con IVA 15%: subtotal 12.00 × 1.15 = 13.80
         double subtotal = 3.50 + 2.75 + 2 * 1.50 + 2.75;
@@ -604,7 +604,7 @@ public class TestCompletoCafeteriaFull1 {
         System.out.println("    Mesa     : 101 — Zona interior norte");
         System.out.println("    Items    : Seco de pollo, Locro de papa, Jugo naranjilla×2, Tres leches");
         System.out.println("    Total    : $" + pedido1.getTotal() + "  (esperado: $" + esperado + ")");
-        Assertions.assertEquals(esperado, pedido1.getTotal(), 0.01,
+        Assertions.assertEquals(esperado, pedido1.getTotal().doubleValue(), 0.01,
                 "Total pedido 1 incorrecto");
     }
 
@@ -638,7 +638,7 @@ public class TestCompletoCafeteriaFull1 {
         Pedido pedido2 = pedidoService.crear(dto);
         Assertions.assertNotNull(pedido2, "Pedido 2 no debe ser null");
         pedido2Id = pedido2.getId();
-        Assertions.assertTrue(pedido2.getTotal() > 0, "Total pedido 2 debe ser > 0");
+        Assertions.assertTrue(pedido2.getTotal().signum() > 0, "Total pedido 2 debe ser > 0");
 
         // Total esperado con IVA 15%: subtotal 7.75 × 1.15 = 8.9125
         double subtotal = 4.50 + 1.25 + 2 * 1.00;
@@ -649,7 +649,7 @@ public class TestCompletoCafeteriaFull1 {
         System.out.println("    Mesa     : 103 — Terraza exterior");
         System.out.println("    Items    : Desayuno ejecutivo, Café pasado, Espumilla×2");
         System.out.println("    Total    : $" + pedido2.getTotal() + "  (esperado: $" + esperado + ")");
-        Assertions.assertEquals(esperado, pedido2.getTotal(), 0.01,
+        Assertions.assertEquals(esperado, pedido2.getTotal().doubleValue(), 0.01,
                 "Total pedido 2 incorrecto");
     }
 
@@ -672,14 +672,14 @@ public class TestCompletoCafeteriaFull1 {
                 .clienteId(cliente3Id)
                 .cajeroId(cajeroId)
                 .empresaRuc(null)   // consumidor final, sin RUC
-                .descuento(0.0)
+                .descuento(java.math.BigDecimal.ZERO)
                 .items(items)
                 .build();
 
         try {
             Factura f = facturaService.crearManual(dto);
             Assertions.assertNotNull(f, "Factura manual no debe ser null");
-            Assertions.assertTrue(f.getTotal() > 0, "Total factura manual > 0");
+            Assertions.assertTrue(f.getTotal().signum() > 0, "Total factura manual > 0");
 
             // Total esperado con IVA 15%: subtotal 12.50 × 1.15 = 14.375
             double subtotal = 4.50 + 2 * 2.50 + 2 * 1.50;
@@ -687,7 +687,7 @@ public class TestCompletoCafeteriaFull1 {
             System.out.println("  ✓ Factura manual #" + f.getId() + " para Pedro Vega");
             System.out.println("    Items  : Fritada, Bolón con queso×2, Chicha de jora×2");
             System.out.println("    Total  : $" + f.getTotal() + "  (esperado: $" + esperado + ")");
-            Assertions.assertEquals(esperado, f.getTotal(), 0.01,
+            Assertions.assertEquals(esperado, f.getTotal().doubleValue(), 0.01,
                     "Total factura manual incorrecto");
         } catch (ConstraintViolationException e) {
             System.out.println("  ⚠ Violación de validación: " + e.getMessage());

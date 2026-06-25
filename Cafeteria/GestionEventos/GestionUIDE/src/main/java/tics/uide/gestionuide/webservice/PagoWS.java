@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.math.BigDecimal;
 import tics.uide.gestionuide.dto.ApiResponse;
 import tics.uide.gestionuide.dto.PagoDto;
 import tics.uide.gestionuide.enums.MetodoPago;
@@ -12,7 +13,6 @@ import tics.uide.gestionuide.model.Pago;
 import tics.uide.gestionuide.service.PagoService;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/pagos")
 public class PagoWS {
 
@@ -39,7 +39,7 @@ public class PagoWS {
     @PostMapping("/efectivo")
     public ResponseEntity<?> registrarEfectivo(
             @RequestParam Long facturaId,
-            @RequestParam Double monto) {
+            @RequestParam BigDecimal monto) {
         try {
             Pago pago = pagoService.registrarEfectivo(facturaId, monto);
             return ResponseEntity.ok(new ApiResponse(true, "Pago en efectivo registrado", pago));
@@ -54,7 +54,7 @@ public class PagoWS {
     @PostMapping("/tarjeta")
     public ResponseEntity<?> registrarTarjeta(
             @RequestParam Long facturaId,
-            @RequestParam Double monto,
+            @RequestParam BigDecimal monto,
             @RequestParam(required = false) String referencia) {
         try {
             Pago pago = pagoService.registrarTarjeta(facturaId, monto, referencia);
@@ -112,7 +112,7 @@ public class PagoWS {
     @GetMapping("/factura/{facturaId}/total")
     public ResponseEntity<?> totalPagado(@PathVariable Long facturaId) {
         try {
-            Double total = pagoService.calcularTotalPagado(facturaId);
+            var total = pagoService.calcularTotalPagado(facturaId);
             return ResponseEntity.ok(new ApiResponse(true, "Total pagado", total));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage(), null));
@@ -126,7 +126,7 @@ public class PagoWS {
     @GetMapping("/factura/{facturaId}/pendiente")
     public ResponseEntity<?> pendiente(@PathVariable Long facturaId) {
         try {
-            Double pendiente = pagoService.calcularPendiente(facturaId);
+            var pendiente = pagoService.calcularPendiente(facturaId);
             return ResponseEntity.ok(new ApiResponse(true, "Pendiente", pendiente));
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage(), null));

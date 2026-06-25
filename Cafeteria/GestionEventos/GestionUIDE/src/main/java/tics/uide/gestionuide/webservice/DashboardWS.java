@@ -9,7 +9,6 @@ import tics.uide.gestionuide.service.DashboardService;
 import java.util.Date;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/dashboard")
 public class DashboardWS {
 

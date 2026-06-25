@@ -1,5 +1,6 @@
 package tics.uide.gestionuide.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import tics.uide.gestionuide.model.DetalleFactura;
 import tics.uide.gestionuide.model.Factura;
 import tics.uide.gestionuide.model.Producto;
 import tics.uide.gestionuide.repository.DetalleFacturaRepository;
+import tics.uide.gestionuide.util.Money;
 
 @Service
 @Transactional
@@ -23,7 +25,7 @@ public class DetalleFacturaService {
                 .producto(producto)
                 .cantidad(cantidad)
                 .precioUnitario(producto.getPrecio())
-                .subtotal(cantidad * producto.getPrecio())
+                .subtotal(Money.multiply(producto.getPrecio(), BigDecimal.valueOf(cantidad)))
                 .build();
 
         return detalleFacturaRepository.save(detalle);
@@ -32,7 +34,7 @@ public class DetalleFacturaService {
     public DetalleFactura actualizar(Long id, Double nuevaCantidad) {
         DetalleFactura detalle = buscarPorId(id);
         detalle.setCantidad(nuevaCantidad);
-        detalle.setSubtotal(nuevaCantidad * detalle.getPrecioUnitario());
+        detalle.setSubtotal(Money.multiply(detalle.getPrecioUnitario(), BigDecimal.valueOf(nuevaCantidad)));
         return detalleFacturaRepository.save(detalle);
     }
 

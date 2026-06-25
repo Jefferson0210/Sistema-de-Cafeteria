@@ -2,10 +2,15 @@ package tics.uide.gestionuide;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
+import io.jsonwebtoken.JwsHeader;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.MalformedJwtException;
+import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.SignatureException;
+import io.jsonwebtoken.SigningKeyResolverAdapter;
 import io.jsonwebtoken.UnsupportedJwtException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.servlet.FilterChain;
@@ -23,9 +28,34 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
     public static final String PERMISOS = "permisos";
     public static final String BEARER = "Bearer";
 
-    // Lee de application.properties via -D o usa fallback
-    public static final String KEY_APP = System.getProperty("jwt.secret",
-            System.getenv("JWT_SECRET") != null ? System.getenv("JWT_SECRET") : "CafeteriaUIDE2024SecureKey!@#$%");
+    // La clave JWT proviene EXCLUSIVAMENTE de -Djwt.secret o de la variable de
+    // entorno JWT_SECRET. Sin fallback: si no está definida, la app no arranca.
+    public static final String KEY_APP = resolverClaveJwt();
+
+    private static String resolverClaveJwt() {
+        String clave = System.getProperty("jwt.secret");
+        if (clave == null || clave.trim().isEmpty()) {
+            clave = System.getenv("JWT_SECRET");
+        }
+        if (clave == null || clave.trim().isEmpty()) {
+            throw new IllegalStateException(
+                "JWT secret no configurado: define JWT_SECRET (o -Djwt.secret) con una " +
+                "clave de al menos 256 bits. La aplicación no arranca sin ella.");
+        }
+        return clave;
+    }
+
+    // Fija el algoritmo permitido: solo HS256. Rechaza cualquier otro alg (o "none")
+    // a nivel de cabecera, antes de aplicar la clave -> evita algorithm-confusion.
+    private static final SigningKeyResolverAdapter KEY_RESOLVER = new SigningKeyResolverAdapter() {
+        @Override
+        public byte[] resolveSigningKeyBytes(JwsHeader header, Claims claims) {
+            if (!SignatureAlgorithm.HS256.getValue().equals(header.getAlgorithm())) {
+                throw new UnsupportedJwtException("Algoritmo de firma no permitido: " + header.getAlgorithm());
+            }
+            return KEY_APP.getBytes();
+        }
+    };
 
     @Override
     protected void doFilterInternal(HttpServletRequest request,
@@ -45,20 +75,25 @@ public class JWTAuthorizationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.clearContext();
             }
             chain.doFilter(request, response);
-        } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException e) {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        } catch (ExpiredJwtException | UnsupportedJwtException | MalformedJwtException | SignatureException e) {
+            SecurityContextHolder.clearContext();
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token inválido o expirado");
         }
     }
 
     private Claims validateToken(HttpServletRequest request) {
         String jwtToken = request.getHeader(AUTORIZATION).replace(BEARER, "").trim();
-        return Jwts.parser().setSigningKey(KEY_APP.getBytes()).parseClaimsJws(jwtToken).getBody();
+        return Jwts.parser().setSigningKeyResolver(KEY_RESOLVER).parseClaimsJws(jwtToken).getBody();
     }
 
-    @SuppressWarnings("unchecked")
     private void setUpSpringAuthentication(Claims claims) {
-        List<String> authorities = (List<String>) claims.get(PERMISOS);
+        List<String> authorities = new ArrayList<>();
+        Object permisos = claims.get(PERMISOS);
+        if (permisos instanceof List<?>) {
+            for (Object p : (List<?>) permisos) {
+                if (p != null) authorities.add(p.toString());
+            }
+        }
         UsernamePasswordAuthenticationToken auth = new UsernamePasswordAuthenticationToken(
                 claims.getSubject(), null,
                 authorities.stream().map(SimpleGrantedAuthority::new).collect(Collectors.toList()));

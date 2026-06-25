@@ -6,15 +6,18 @@ import java.util.Map;
 import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import tics.uide.gestionuide.dto.ApiResponse;
+import tics.uide.gestionuide.dto.PageMeta;
+import tics.uide.gestionuide.util.PageUtils;
+import org.springframework.data.domain.Page;
 import tics.uide.gestionuide.dto.CrearFacturaManualDto;
 import tics.uide.gestionuide.enums.EstadoFactura;
 import tics.uide.gestionuide.model.Factura;
 import tics.uide.gestionuide.service.*;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/facturas")
 public class FacturaWS {
 
@@ -37,9 +40,19 @@ public class FacturaWS {
     }
 
     @GetMapping
-    public ResponseEntity<?> listarTodas() { return ResponseEntity.ok(new ApiResponse(true, "Facturas", facturaService.listarTodas())); }
+    public ResponseEntity<?> listarTodas(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id,desc") String sort) {
+        if (page == null) {
+            return ResponseEntity.ok(new ApiResponse(true, "Facturas", facturaService.listarTodas()));
+        }
+        Page<Factura> p = facturaService.listarTodas(PageUtils.of(page, size, sort));
+        return ResponseEntity.ok(new ApiResponse(true, "Facturas", p.getContent(), new PageMeta(p)));
+    }
 
     @GetMapping("/{id}")
+    @PreAuthorize("@seguridad.puedeLeerFactura(#id, authentication)")
     public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
         try { return ResponseEntity.ok(new ApiResponse(true, "Factura", facturaService.buscarPorId(id)));
         } catch (Exception e) { return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiResponse(false, e.getMessage(), null)); }
@@ -64,6 +77,7 @@ public class FacturaWS {
     }
 
     @GetMapping("/cliente/{clienteId}")
+    @PreAuthorize("@seguridad.esDuenioOStaff(#clienteId, authentication, 'ADMIN', 'CAJERO')")
     public ResponseEntity<?> listarPorCliente(@PathVariable Long clienteId) {
         try { return ResponseEntity.ok(new ApiResponse(true, "Facturas del cliente", facturaService.listarPorCliente(clienteId)));
         } catch (Exception e) { return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage(), null)); }

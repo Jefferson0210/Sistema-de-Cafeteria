@@ -17,6 +17,9 @@ public class RolService {
     @Autowired
     private RolRepository rolRepository;
 
+    @Autowired
+    private AuditService auditService;
+
     public Roles agregarRol(Usuario usuario, Rol rol) {
         if (rolRepository.existsByUsuarioAndRol(usuario, rol)) {
             throw new BadRequestException("El usuario ya tiene el rol: " + rol.name());
@@ -27,7 +30,9 @@ public class RolService {
                 .rol(rol)
                 .build();
 
-        return rolRepository.save(roles);
+        Roles guardado = rolRepository.save(roles);
+        auditService.registrarSiAutenticado("ROL_AGREGADO", "Usuario", usuario.getId(), "rol=" + rol.name());
+        return guardado;
     }
 
     public List<Roles> obtenerRolesDeUsuario(Usuario usuario) {
@@ -50,6 +55,7 @@ public class RolService {
         List<Roles> roles = rolRepository.findByUsuarioAndRol(usuario, rol);
         if (!roles.isEmpty()) {
             rolRepository.deleteAll(roles);
+            auditService.registrarSiAutenticado("ROL_ELIMINADO", "Usuario", usuario.getId(), "rol=" + rol.name());
         }
     }
 

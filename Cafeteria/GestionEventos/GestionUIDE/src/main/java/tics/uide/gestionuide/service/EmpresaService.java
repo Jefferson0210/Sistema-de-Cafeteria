@@ -1,5 +1,6 @@
 package tics.uide.gestionuide.service;
 
+import java.math.BigDecimal;
 import java.util.List;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +10,7 @@ import tics.uide.gestionuide.exception.BadRequestException;
 import tics.uide.gestionuide.exception.NotFoundException;
 import tics.uide.gestionuide.model.Empresa;
 import tics.uide.gestionuide.repository.EmpresaRepository;
+import tics.uide.gestionuide.util.Money;
 
 @Service
 @Transactional
@@ -16,6 +18,9 @@ public class EmpresaService {
 
     @Autowired
     private EmpresaRepository empresaRepository;
+
+    @Autowired
+    private IvaService ivaService;
 
     public Empresa crear(EmpresaDto dto) {
         if (empresaRepository.existsById(dto.getRuc())) {
@@ -30,7 +35,7 @@ public class EmpresaService {
                 .ruc(dto.getRuc())
                 .nombre(dto.getNombre())
                 .nombreComercial(dto.getNombreComercial())
-                .iva(dto.getIva() != null ? dto.getIva() : 15.0)
+                .iva(dto.getIva() != null ? Money.scale(dto.getIva()) : ivaService.porcentajePorDefecto())
                 .direccion(dto.getDireccion())
                 .telefono(dto.getTelefono())
                 .email(dto.getEmail())
@@ -53,7 +58,7 @@ public class EmpresaService {
         }
 
         empresa.setNombreComercial(dto.getNombreComercial());
-        empresa.setIva(dto.getIva());
+        empresa.setIva(Money.scale(dto.getIva()));
         empresa.setDireccion(dto.getDireccion());
         empresa.setTelefono(dto.getTelefono());
         empresa.setEmail(dto.getEmail());
@@ -92,9 +97,9 @@ public class EmpresaService {
         return empresaRepository.findByActivoTrue();
     }
 
-    public Empresa actualizarIva(String ruc, Double nuevoIva) {
+    public Empresa actualizarIva(String ruc, BigDecimal nuevoIva) {
         Empresa empresa = buscarPorRuc(ruc);
-        empresa.setIva(nuevoIva);
+        empresa.setIva(Money.scale(nuevoIva));
         return empresaRepository.save(empresa);
     }
 }

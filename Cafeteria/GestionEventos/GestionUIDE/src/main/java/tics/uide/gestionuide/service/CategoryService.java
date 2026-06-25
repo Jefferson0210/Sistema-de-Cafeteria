@@ -9,6 +9,7 @@ import tics.uide.gestionuide.exception.BadRequestException;
 import tics.uide.gestionuide.exception.NotFoundException;
 import tics.uide.gestionuide.model.Category;
 import tics.uide.gestionuide.repository.CategoryRepository;
+import tics.uide.gestionuide.repository.ProductoRepository;
 
 @Service
 @Transactional
@@ -16,6 +17,9 @@ public class CategoryService {
 
     @Autowired
     private CategoryRepository categoryRepository;
+
+    @Autowired
+    private ProductoRepository productoRepository;
 
     public Category crear(CategoryDto dto) {
         if (categoryRepository.existsByName(dto.getName())) {
@@ -46,6 +50,12 @@ public class CategoryService {
 
     public void eliminar(Long id) {
         Category category = buscarPorId(id);
+        productoRepository.findAll().stream()
+                .filter(p -> p.getCategory() != null && p.getCategory().getCategoryId().equals(id))
+                .forEach(p -> {
+                    p.setCategory(null);
+                    productoRepository.save(p);
+                });
         categoryRepository.delete(category);
     }
 
@@ -55,7 +65,6 @@ public class CategoryService {
         categoryRepository.save(category);
     }
 
-    // NUEVO: activar categoría
     public void activar(Long id) {
         Category category = buscarPorId(id);
         category.setActivo(true);

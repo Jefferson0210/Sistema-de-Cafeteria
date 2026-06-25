@@ -17,7 +17,6 @@ import tics.uide.gestionuide.service.MesaService;
  * Antes solo tenía GET y cambiar estado
  */
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/mesas")
 public class MesaWS {
 

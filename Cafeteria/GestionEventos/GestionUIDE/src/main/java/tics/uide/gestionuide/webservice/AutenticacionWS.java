@@ -16,32 +16,40 @@ import tics.uide.gestionuide.dto.UsuarioRegistroDto;
 import tics.uide.gestionuide.exception.BadRequestException;
 import tics.uide.gestionuide.model.Usuario;
 import tics.uide.gestionuide.service.EmailService;
+import tics.uide.gestionuide.service.EmailVerificationService;
 import tics.uide.gestionuide.service.GoogleIdTokenService;
+import tics.uide.gestionuide.service.PasswordResetService;
+import tics.uide.gestionuide.service.RefreshTokenService;
+import tics.uide.gestionuide.service.RateLimitService;
+import tics.uide.gestionuide.exception.TooManyRequestsException;
+import org.springframework.beans.factory.annotation.Value;
 import tics.uide.gestionuide.service.RolService;
 import tics.uide.gestionuide.service.UsuarioService;
 
 import javax.validation.Valid;
 import java.security.Principal;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import org.springframework.http.HttpHeaders;
 
 @RestController
 @RequestMapping("/api/auth")
-@CrossOrigin(origins = "*")
 public class AutenticacionWS {
 
     @Autowired private UsuarioService usuarioService;
     @Autowired private GoogleIdTokenService googleIdTokenService;
     @Autowired private RolService rolService;
     @Autowired private EmailService emailService;
+    @Autowired private PasswordResetService passwordResetService;
+    @Autowired private EmailVerificationService emailVerificationService;
+    @Autowired private RefreshTokenService refreshTokenService;
+    @Autowired private RateLimitService rateLimitService;
 
-    // Códigos de recuperación temporales: email -> {codigo, expiracion}
-    private final ConcurrentHashMap<String, String[]> codigosRecuperacion = new ConcurrentHashMap<>();
+    @Value("${app.jwt.access-ttl-minutes:15}")
+    private long accessTtlMinutes;
 
     private String generarToken(Usuario u) {
-        long expMs = 1000L * 60 * 60 * 24;
+        long expMs = accessTtlMinutes * 60 * 1000L;   // access token corto (configurable)
         return Jwts.builder()
                 .setSubject(u.getUsername())
                 .claim(tics.uide.gestionuide.JWTAuthorizationFilter.PERMISOS, extraerRoles(u))
@@ -61,12 +69,12 @@ public class AutenticacionWS {
         }
         try {
             Usuario usuario = usuarioService.registrar(registroDto);
-            String token = generarToken(usuario);
-            // Enviar email de bienvenida (async, no bloquea)
-            try { emailService.enviarBienvenida(usuario.getEmail(), usuario.getNombre()); } catch (Exception ignored) {}
+            // Doble opt-in: se envía verificación y NO se auto-loguea (no se devuelve JWT).
+            emailVerificationService.enviarVerificacion(usuario);
             return ResponseEntity.status(HttpStatus.CREATED)
-                    .header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                    .body(new ApiResponse(true, "Usuario registrado exitosamente", construirDataUsuario(usuario, token)));
+                    .body(new ApiResponse(true,
+                            "Registrado. Revisa tu correo para verificar tu cuenta.",
+                            construirDataUsuario(usuario, null)));
         } catch (BadRequestException e) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage(), null));
         }
@@ -78,55 +86,85 @@ public class AutenticacionWS {
         if (loginDto == null) throw new BadRequestException("Body requerido");
         if (loginDto.getUsernameOrEmail() == null || loginDto.getUsernameOrEmail().trim().isEmpty()) throw new BadRequestException("usernameOrEmail requerido");
         if (loginDto.getPassword() == null || loginDto.getPassword().trim().isEmpty()) throw new BadRequestException("password requerido");
+        long retryEmail = rateLimitService.chequearEmail("login", loginDto.getUsernameOrEmail());
+        if (retryEmail > 0) throw new TooManyRequestsException(retryEmail);
         Usuario u = usuarioService.autenticar(loginDto);
-        String token = generarToken(u);
-        return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION, "Bearer " + token)
-                .body(new ApiResponse(true, "Login correcto", construirDataUsuario(u, token)));
+        String access = generarToken(u);
+        String refresh = refreshTokenService.emitir(u);
+        Map<String, Object> data = construirDataUsuario(u, access);
+        data.put("refreshToken", refresh);
+        return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION, "Bearer " + access)
+                .body(new ApiResponse(true, "Login correcto", data));
     }
 
-    // POST /api/auth/recuperar-password — envía código al email
+    // POST /api/auth/refresh — { refreshToken } -> nuevo access + rota el refresh
+    @PostMapping("/refresh")
+    public ResponseEntity<?> refresh(@RequestBody Map<String, String> body) {
+        try {
+            RefreshTokenService.Rotacion r = refreshTokenService.rotar(body.get("refreshToken"));
+            String access = generarToken(r.usuario);
+            Map<String, Object> data = new LinkedHashMap<>();
+            data.put("token", access);
+            data.put("tokenType", "Bearer");
+            data.put("refreshToken", r.nuevoRefresh);
+            return ResponseEntity.ok().header(HttpHeaders.AUTHORIZATION, "Bearer " + access)
+                    .body(new ApiResponse(true, "Token renovado", data));
+        } catch (BadRequestException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(new ApiResponse(false, e.getMessage(), null));
+        }
+    }
+
+    // POST /api/auth/recuperar-password — solicita el reset; responde SIEMPRE igual (no filtra si el email existe)
     @PostMapping("/recuperar-password")
     public ResponseEntity<?> solicitarRecuperacion(@RequestBody Map<String, String> body) {
         String email = body.get("email");
-        if (email == null || email.isBlank()) return ResponseEntity.badRequest().body(new ApiResponse(false, "Email requerido", null));
+        long retry = rateLimitService.chequearEmail("recuperar", email);
+        if (retry > 0) throw new TooManyRequestsException(retry);
+        passwordResetService.solicitar(email);
+        return ResponseEntity.ok(new ApiResponse(true,
+                "Si el email está registrado, recibirás un enlace para restablecer tu contraseña.", null));
+    }
+
+    // POST /api/auth/restablecer-password — confirma el reset con { token, nuevaPassword }
+    @PostMapping("/restablecer-password")
+    public ResponseEntity<?> restablecerPassword(@RequestBody Map<String, String> body) {
+        String token = body.get("token");
+        String nuevaPassword = body.get("nuevaPassword");
+        if (token == null || token.isBlank() || nuevaPassword == null || nuevaPassword.length() < 8) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false,
+                    "token y nuevaPassword (mínimo 8 caracteres) son requeridos", null));
+        }
         try {
-            Usuario u = usuarioService.buscarPorEmail(email.trim());
-            String codigo = String.format("%06d", new Random().nextInt(999999));
-            long expiracion = System.currentTimeMillis() + (15 * 60 * 1000); // 15 min
-            codigosRecuperacion.put(email.trim().toLowerCase(), new String[]{codigo, String.valueOf(expiracion)});
-            emailService.enviarCodigoRecuperacion(email, u.getNombre(), codigo);
-            return ResponseEntity.ok(new ApiResponse(true, "Código enviado a " + email, null));
-        } catch (Exception e) {
-            // No revelar si el email existe o no (seguridad)
-            return ResponseEntity.ok(new ApiResponse(true, "Si el email está registrado, recibirás un código", null));
+            passwordResetService.restablecer(token, nuevaPassword);
+            return ResponseEntity.ok(new ApiResponse(true, "Contraseña actualizada. Ya puedes iniciar sesión", null));
+        } catch (BadRequestException e) {
+            return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage(), null));
         }
     }
 
-    // POST /api/auth/verificar-codigo — verifica código y cambia password
-    @PostMapping("/verificar-codigo")
-    public ResponseEntity<?> verificarCodigo(@RequestBody Map<String, String> body) {
-        String email = body.get("email");
-        String codigo = body.get("codigo");
-        String nuevaPassword = body.get("nuevaPassword");
-        if (email == null || codigo == null || nuevaPassword == null)
-            return ResponseEntity.badRequest().body(new ApiResponse(false, "email, codigo y nuevaPassword son requeridos", null));
-
-        String[] datos = codigosRecuperacion.get(email.trim().toLowerCase());
-        if (datos == null) return ResponseEntity.badRequest().body(new ApiResponse(false, "No hay código solicitado para este email", null));
-        if (System.currentTimeMillis() > Long.parseLong(datos[1])) {
-            codigosRecuperacion.remove(email.trim().toLowerCase());
-            return ResponseEntity.badRequest().body(new ApiResponse(false, "El código ha expirado. Solicita uno nuevo", null));
-        }
-        if (!datos[0].equals(codigo.trim())) return ResponseEntity.badRequest().body(new ApiResponse(false, "Código incorrecto", null));
-
+    // POST /api/auth/verificar-email — confirma el correo con { token }
+    @PostMapping("/verificar-email")
+    public ResponseEntity<?> verificarEmail(@RequestBody Map<String, String> body) {
+        String token = body.get("token");
+        if (token == null || token.isBlank())
+            return ResponseEntity.badRequest().body(new ApiResponse(false, "token requerido", null));
         try {
-            Usuario u = usuarioService.buscarPorEmail(email.trim());
-            usuarioService.resetPassword(u.getId(), nuevaPassword);
-            codigosRecuperacion.remove(email.trim().toLowerCase());
-            return ResponseEntity.ok(new ApiResponse(true, "Contraseña actualizada. Ya puedes iniciar sesión", null));
-        } catch (Exception e) {
+            emailVerificationService.verificar(token);
+            return ResponseEntity.ok(new ApiResponse(true, "Correo verificado. Ya puedes iniciar sesión.", null));
+        } catch (BadRequestException e) {
             return ResponseEntity.badRequest().body(new ApiResponse(false, e.getMessage(), null));
         }
+    }
+
+    // POST /api/auth/reenviar-verificacion — reenvía el enlace; respuesta genérica (no enumera)
+    @PostMapping("/reenviar-verificacion")
+    public ResponseEntity<?> reenviarVerificacion(@RequestBody Map<String, String> body) {
+        String email = body.get("email");
+        long retry = rateLimitService.chequearEmail("reenviar", email);
+        if (retry > 0) throw new TooManyRequestsException(retry);
+        emailVerificationService.reenviar(email);
+        return ResponseEntity.ok(new ApiResponse(true,
+                "Si el email está registrado y pendiente de verificar, recibirás un nuevo enlace.", null));
     }
 
     @GetMapping("/verificar/username/{username}")
@@ -177,7 +215,10 @@ public class AutenticacionWS {
     }
 
     @PostMapping("/logout")
-    public ResponseEntity<?> logout() { return ResponseEntity.ok(new ApiResponse(true, "Logout correcto", null)); }
+    public ResponseEntity<?> logout(@RequestBody(required = false) Map<String, String> body) {
+        if (body != null) refreshTokenService.revocar(body.get("refreshToken"));
+        return ResponseEntity.ok(new ApiResponse(true, "Logout correcto", null));
+    }
 
     private Map<String, Object> construirDataUsuario(Usuario u, String token) {
         Map<String, Object> data = new LinkedHashMap<>();

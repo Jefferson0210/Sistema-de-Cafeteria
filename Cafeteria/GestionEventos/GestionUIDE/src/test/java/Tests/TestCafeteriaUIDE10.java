@@ -58,7 +58,7 @@ public class TestCafeteriaUIDE10 {
     }
 
     private void crearProducto(String nombre, String desc, double precio, int stock, String img, Long catId) {
-        Producto p = productoService.crear(ProductoDto.builder().nombre(nombre).descripcion(desc).precio(precio)
+        Producto p = productoService.crear(ProductoDto.builder().nombre(nombre).descripcion(desc).precio(java.math.BigDecimal.valueOf(precio))
                 .stock(stock).disponible(true).imagenUrl(img).categoryId(catId).build());
         productosIds.add(p.getId());
         System.out.printf("  + [%02d] %-42s $%5.2f | stock=%d%n", productosIds.size(), nombre, precio, stock);
@@ -192,7 +192,7 @@ crearProducto("Quimbolitos", "Tamalitos dulces de maiz", 1.00, 90, "quimbolitos.
         // subtotal = 3.50+2.75+2*1.50+2.75 = 12.00, total = 12.00*1.15 = 13.80
         double sub1 = 3.50 + 2.75 + 2*1.50 + 2.75;
         double esp1 = Math.round(sub1 * 1.15 * 100.0) / 100.0;
-        Assertions.assertEquals(esp1, p1.getTotal(), 0.01, "Total pedido 1");
+        Assertions.assertEquals(esp1, p1.getTotal().doubleValue(), 0.01, "Total pedido 1");
         System.out.println("  + Pedido 1 | Total=$" + p1.getTotal());
 
         // Pedido 2: Desayuno ejecutivo[8] + Cafe pasado[34] + Espumilla x2[41]
@@ -208,7 +208,7 @@ crearProducto("Quimbolitos", "Tamalitos dulces de maiz", 1.00, 90, "quimbolitos.
         // subtotal = 4.50+1.25+2*1.00 = 7.75, total = 7.75*1.15 = 8.9125
         double sub2 = 4.50 + 1.25 + 2*1.00;
         double esp2 = Math.round(sub2 * 1.15 * 100.0) / 100.0;
-        Assertions.assertEquals(esp2, p2.getTotal(), 0.01, "Total pedido 2");
+        Assertions.assertEquals(esp2, p2.getTotal().doubleValue(), 0.01, "Total pedido 2");
         System.out.println("  + Pedido 2 | Total=$" + p2.getTotal());
     }
 
@@ -235,7 +235,7 @@ crearProducto("Quimbolitos", "Tamalitos dulces de maiz", 1.00, 90, "quimbolitos.
         Assertions.assertNotNull(pedido1Id);
         Factura f = facturaService.crearDesdePedido(pedido1Id, cajeroId);
         Assertions.assertNotNull(f);
-        Assertions.assertTrue(f.getTotal() > 0);
+        Assertions.assertTrue(f.getTotal().signum() > 0);
         System.out.println("  + Factura #" + f.getNumeroFactura() + " | Total=$" + f.getTotal());
     }
 
@@ -249,13 +249,13 @@ crearProducto("Quimbolitos", "Tamalitos dulces de maiz", 1.00, 90, "quimbolitos.
         items.add(ItemFacturaDto.builder().productoId(productosIds.get(36)).cantidad(2.0).build());
 
         Factura f = facturaService.crearManual(CrearFacturaManualDto.builder()
-                .clienteId(cliente3Id).cajeroId(cajeroId).empresaRuc(null).descuento(0.0).items(items).build());
+                .clienteId(cliente3Id).cajeroId(cajeroId).empresaRuc(null).descuento(java.math.BigDecimal.ZERO).items(items).build());
         Assertions.assertNotNull(f);
-        Assertions.assertTrue(f.getTotal() > 0);
+        Assertions.assertTrue(f.getTotal().signum() > 0);
         // subtotal=4.50+2*2.50+2*1.50=12.50, +15%IVA=14.375
-        double sub = 4.50 + 2*2.50 + 2*1.50;
-        double esp = Math.round(sub * 1.15 * 100.0) / 100.0;
-        Assertions.assertEquals(esp, f.getTotal(), 0.01, "Total factura manual");
+        // BigDecimal HALF_UP: subtotal 12.50 + IVA 15% (1.875 -> 1.88) = 14.38
+        double esp = 14.38;
+        Assertions.assertEquals(esp, f.getTotal().doubleValue(), 0.01, "Total factura manual");
         System.out.println("  + Factura manual #" + f.getNumeroFactura() + " | Total=$" + f.getTotal());
     }
 

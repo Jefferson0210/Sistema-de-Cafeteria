@@ -18,6 +18,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import tics.uide.gestionuide.enums.EstadoMesa;
+import tics.uide.gestionuide.enums.ModoCuenta;
 
 /**
  * Entidad que representa una mesa del restaurante
@@ -60,6 +61,11 @@ public class Mesa implements Serializable {
     @Builder.Default
     @Column(nullable = false)
     private Boolean activo = true;
+
+    // Modo de cuenta de la sesión activa (null = mesa sin sesión / idle). Se fija en el primer escaneo.
+    @Enumerated(EnumType.STRING)
+    @Column(length = 20)
+    private ModoCuenta modoCuenta;
 
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false, updatable = false)

@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
@@ -13,6 +14,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import tics.uide.gestionuide.enums.EstadoPedido;
+import tics.uide.gestionuide.util.Money;
 
 @Entity
 @Builder
@@ -53,13 +55,13 @@ public class Pedido implements Serializable {
     private EstadoPedido estado;
 
     @Column(precision = 10, scale = 2)
-    private Double subtotal;
+    private BigDecimal subtotal;
 
     @Column(precision = 10, scale = 2)
-    private Double iva;
+    private BigDecimal iva;
 
     @Column(precision = 10, scale = 2)
-    private Double total;
+    private BigDecimal total;
 
     @Column(length = 500)
     private String notas;
@@ -72,15 +74,14 @@ public class Pedido implements Serializable {
     @Column(nullable = false)
     private Date fechaActualizacion;
 
-    // NUEVO: el frontend usa "fechaCreacion", este alias lo expone correctamente
     @JsonProperty("fechaCreacion")
     public Date getFechaCreacion() {
         return fechaPedido;
     }
 
     // Detalles visibles en JSON (no @JsonIgnore)
-    @OneToMany(mappedBy = "pedido", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<DetallePedido> detalles;
+@OneToMany(mappedBy = "pedido", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+private List<DetallePedido> detalles;
 
     @JsonIgnore
     @OneToOne(mappedBy = "pedido", fetch = FetchType.LAZY)
@@ -91,9 +92,9 @@ public class Pedido implements Serializable {
         fechaPedido = new Date();
         fechaActualizacion = new Date();
         if (estado == null) estado = EstadoPedido.PENDIENTE;
-        if (subtotal == null) subtotal = 0.0;
-        if (iva == null) iva = 0.0;
-        if (total == null) total = 0.0;
+        if (subtotal == null) subtotal = Money.zero();
+        if (iva == null) iva = Money.zero();
+        if (total == null) total = Money.zero();
     }
 
     @PreUpdate

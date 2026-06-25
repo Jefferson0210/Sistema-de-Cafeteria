@@ -13,9 +13,9 @@ export default function Sidebar({items,role,mobileOpen,onClose}:Props) {
   const { user } = useAuth();
 
   return (
-    <aside className={`fixed left-0 top-0 h-screen bg-sidebar z-50 flex flex-col w-60 transition-transform duration-300 lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`}>
+    <aside className={`fixed left-0 top-0 h-screen bg-sidebar z-50 flex flex-col w-60 transition-transform duration-300 lg:translate-x-0 ${mobileOpen ? 'translate-x-0' : '-translate-x-full'}`} style={{paddingTop:'env(safe-area-inset-top)'}}>
       {/* Logo */}
-      <div className="h-16 flex items-center justify-between px-4 border-b border-sidebar-border">
+      <div className="h-14 flex items-center justify-between px-4 border-b border-sidebar-border">
         <div className="flex items-center gap-3">
           <div className="w-9 h-9 bg-gradient-to-br from-gold-400 to-gold-500 rounded-xl flex items-center justify-center flex-shrink-0">
             <UtensilsCrossed className="w-5 h-5 text-white"/>

@@ -145,7 +145,7 @@ public class FacturaPdfService {
         totals.setHorizontalAlignment(Element.ALIGN_RIGHT);
         addTotalRow(totals, "Subtotal:", String.format("$%.2f", f.getSubtotal()), cellFont);
         addTotalRow(totals, "IVA:", String.format("$%.2f", f.getIva()), cellFont);
-        if (f.getDescuento() != null && f.getDescuento() > 0)
+        if (f.getDescuento() != null && f.getDescuento().compareTo(java.math.BigDecimal.ZERO) > 0)
             addTotalRow(totals, "Descuento:", String.format("-$%.2f", f.getDescuento()), cellFont);
 
         PdfPCell tl = new PdfPCell(new Phrase("TOTAL:", new Font(Font.FontFamily.HELVETICA, 12, Font.BOLD, NAVY)));

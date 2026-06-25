@@ -5,6 +5,7 @@
 package tics.uide.gestionuide.dto;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.Size;
@@ -36,7 +37,7 @@ public class EmpresaDto implements Serializable {
     @Size(max = 100, message = "El nombre comercial no puede exceder 100 caracteres")
     private String nombreComercial;
 
-    private Double iva;
+    private BigDecimal iva;
 
     @Size(max = 200, message = "La dirección no puede exceder 200 caracteres")
     private String direccion;

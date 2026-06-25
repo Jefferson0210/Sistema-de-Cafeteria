@@ -1,6 +1,7 @@
 package tics.uide.gestionuide.service;
 
 import java.util.*;
+import java.math.BigDecimal;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -8,6 +9,7 @@ import org.springframework.stereotype.Service;
 import tics.uide.gestionuide.enums.*;
 import tics.uide.gestionuide.model.*;
 import tics.uide.gestionuide.repository.*;
+import tics.uide.gestionuide.util.Money;
 
 @Service
 @Transactional
@@ -71,22 +73,24 @@ public class DashboardService {
 
     private Map<String, Object> calcularVentas(List<Factura> facturasPagadas, List<Pago> pagos) {
         Map<String, Object> v = new LinkedHashMap<>();
-        double ingresoTotal = facturasPagadas.stream().mapToDouble(Factura::getTotal).sum();
-        v.put("ingresoTotal", Math.round(ingresoTotal * 100.0) / 100.0);
-        double ivaTotal = facturasPagadas.stream().mapToDouble(Factura::getIva).sum();
-        v.put("ivaTotal", Math.round(ivaTotal * 100.0) / 100.0);
-        double ticketPromedio = facturasPagadas.isEmpty() ? 0 : ingresoTotal / facturasPagadas.size();
-        v.put("ticketPromedio", Math.round(ticketPromedio * 100.0) / 100.0);
+        BigDecimal ingresoTotal = Money.sum(facturasPagadas.stream().map(Factura::getTotal).collect(Collectors.toList()));
+        v.put("ingresoTotal", ingresoTotal);
+        BigDecimal ivaTotal = Money.sum(facturasPagadas.stream().map(Factura::getIva).collect(Collectors.toList()));
+        v.put("ivaTotal", ivaTotal);
+        BigDecimal ticketPromedio = facturasPagadas.isEmpty() ? Money.zero()
+                : ingresoTotal.divide(BigDecimal.valueOf(facturasPagadas.size()), Money.SCALE, Money.MODE);
+        v.put("ticketPromedio", ticketPromedio);
         v.put("facturasPagadas", facturasPagadas.size());
-        Map<String, Double> porMetodo = new LinkedHashMap<>();
+        Map<String, BigDecimal> porMetodo = new LinkedHashMap<>();
         for (MetodoPago m : MetodoPago.values()) {
-            double total = pagos.stream().filter(p -> p.getMetodoPago() == m).mapToDouble(Pago::getMonto).sum();
-            porMetodo.put(m.name(), Math.round(total * 100.0) / 100.0);
+            BigDecimal total = Money.sum(pagos.stream().filter(p -> p.getMetodoPago() == m)
+                    .map(Pago::getMonto).collect(Collectors.toList()));
+            porMetodo.put(m.name(), total);
         }
         v.put("ingresosPorMetodo", porMetodo);
         List<Factura> pendientes = facturaRepository.findByEstado(EstadoFactura.PENDIENTE);
         v.put("facturasPendientes", pendientes.size());
-        v.put("montoPorCobrar", Math.round(pendientes.stream().mapToDouble(Factura::getTotal).sum() * 100.0) / 100.0);
+        v.put("montoPorCobrar", Money.sum(pendientes.stream().map(Factura::getTotal).collect(Collectors.toList())));
         return v;
     }
 
@@ -94,7 +98,7 @@ public class DashboardService {
         List<DetallePedido> todos = detallePedidoRepository.findAll();
         Map<Long, int[]> stats = new LinkedHashMap<>();
         Map<Long, String> nombres = new LinkedHashMap<>();
-        Map<Long, Double> ingresos = new LinkedHashMap<>();
+        Map<Long, BigDecimal> ingresos = new LinkedHashMap<>();
         for (DetallePedido d : todos) {
             if (d.getProducto() != null) {
                 Long pid = d.getProducto().getId();
@@ -102,13 +106,13 @@ public class DashboardService {
                 stats.get(pid)[0] += d.getCantidad() != null ? d.getCantidad() : 0;
                 stats.get(pid)[1] += 1;
                 nombres.put(pid, d.getProducto().getNombre());
-                ingresos.merge(pid, d.getSubtotal() != null ? d.getSubtotal() : 0.0, Double::sum);
+                ingresos.merge(pid, Money.nz(d.getSubtotal()), BigDecimal::add);
             }
         }
         return stats.entrySet().stream().sorted((a, b) -> Integer.compare(b.getValue()[0], a.getValue()[0])).limit(limit)
                 .map(e -> { Map<String, Object> m = new LinkedHashMap<>(); m.put("productoId", e.getKey()); m.put("nombre", nombres.get(e.getKey()));
                     m.put("cantidadVendida", e.getValue()[0]); m.put("vecesOrdenado", e.getValue()[1]);
-                    m.put("ingresoGenerado", Math.round(ingresos.getOrDefault(e.getKey(), 0.0) * 100.0) / 100.0); return m; }).collect(Collectors.toList());
+                    m.put("ingresoGenerado", ingresos.getOrDefault(e.getKey(), Money.zero())); return m; }).collect(Collectors.toList());
     }
 
     public List<Map<String, Object>> obtenerStockBajo(int umbral) {
@@ -119,16 +123,16 @@ public class DashboardService {
     }
 
     public List<Map<String, Object>> obtenerVentasPorMesero() {
-        Map<Long, String> nombres = new LinkedHashMap<>(); Map<Long, int[]> stats = new LinkedHashMap<>(); Map<Long, Double> ingresos = new LinkedHashMap<>();
+        Map<Long, String> nombres = new LinkedHashMap<>(); Map<Long, int[]> stats = new LinkedHashMap<>(); Map<Long, BigDecimal> ingresos = new LinkedHashMap<>();
         for (Pedido p : pedidoRepository.findAll()) {
             if (p.getMesero() != null) { Long mid = p.getMesero().getId();
                 nombres.put(mid, p.getMesero().getNombre() + " " + (p.getMesero().getApellido() != null ? p.getMesero().getApellido() : ""));
                 stats.computeIfAbsent(mid, k -> new int[]{0, 0}); stats.get(mid)[0] += 1;
-                ingresos.merge(mid, p.getTotal() != null ? p.getTotal() : 0.0, Double::sum);
+                ingresos.merge(mid, Money.nz(p.getTotal()), BigDecimal::add);
             }
         }
-        return stats.entrySet().stream().sorted((a, b) -> Double.compare(ingresos.getOrDefault(b.getKey(), 0.0), ingresos.getOrDefault(a.getKey(), 0.0)))
+        return stats.entrySet().stream().sorted((a, b) -> ingresos.getOrDefault(b.getKey(), Money.zero()).compareTo(ingresos.getOrDefault(a.getKey(), Money.zero())))
                 .map(e -> { Map<String, Object> m = new LinkedHashMap<>(); m.put("meseroId", e.getKey()); m.put("nombre", nombres.get(e.getKey()));
-                    m.put("totalPedidos", e.getValue()[0]); m.put("ingresoGenerado", Math.round(ingresos.getOrDefault(e.getKey(), 0.0) * 100.0) / 100.0); return m; }).collect(Collectors.toList());
+                    m.put("totalPedidos", e.getValue()[0]); m.put("ingresoGenerado", ingresos.getOrDefault(e.getKey(), Money.zero())); return m; }).collect(Collectors.toList());
     }
 }

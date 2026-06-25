@@ -3,6 +3,7 @@ package tics.uide.gestionuide.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import java.util.List;
 import javax.persistence.*;
@@ -14,6 +15,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import tics.uide.gestionuide.enums.EstadoFactura;
+import tics.uide.gestionuide.util.Money;
 
 @Entity
 @Builder
@@ -61,19 +63,19 @@ public class Factura implements Serializable {
     // CORREGIDO: quitado @Positive para permitir 0.0 inicial en crearManual
     @NotNull(message = "El subtotal es obligatorio")
     @Column(nullable = false, precision = 10, scale = 2)
-    private Double subtotal;
+    private BigDecimal subtotal;
 
     @NotNull(message = "El IVA es obligatorio")
     @Column(nullable = false, precision = 10, scale = 2)
-    private Double iva;
+    private BigDecimal iva;
 
     @Builder.Default
     @Column(precision = 10, scale = 2)
-    private Double descuento = 0.0;
+    private BigDecimal descuento = Money.zero();
 
     @NotNull(message = "El total es obligatorio")
     @Column(nullable = false, precision = 10, scale = 2)
-    private Double total;
+    private BigDecimal total;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
@@ -102,7 +104,7 @@ public class Factura implements Serializable {
         fechaEmision = new Date();
         fechaActualizacion = new Date();
         if (estado == null) estado = EstadoFactura.PENDIENTE;
-        if (descuento == null) descuento = 0.0;
+        if (descuento == null) descuento = Money.zero();
     }
 
     @PreUpdate

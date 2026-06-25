@@ -10,4 +10,5 @@ import tics.uide.gestionuide.model.Pago;
 public interface PagoRepository extends JpaRepository<Pago, Long> {
     List<Pago> findByFactura_Id(Long facturaId);
     List<Pago> findByMetodoPago(MetodoPago metodoPago);
+    boolean existsByFactura_IdAndReferencia(Long facturaId, String referencia);
 }

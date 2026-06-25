@@ -6,5 +6,5 @@ export const mesaService = {
   crear: (d:any) => api.post('/mesas',d),
   actualizar: (id:number,d:any) => api.put(`/mesas/${id}`,d),
   eliminar: (id:number) => api.delete(`/mesas/${id}`),
-  cambiarEstado: (id:number,estado:string) => api.put(`/mesas/${id}/estado?estado=${estado}`),
+cambiarEstado: (id:number, estado:string) => api.put(`/mesas/${id}/estado?estado=${estado}`),
 };

@@ -5,6 +5,7 @@
 package tics.uide.gestionuide.dto;
 
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.List;
 import javax.validation.Valid;
 import javax.validation.constraints.NotEmpty;
@@ -33,7 +34,7 @@ public class CrearFacturaManualDto implements Serializable {
 
     private String empresaRuc; // Opcional
 
-    private Double descuento; // Opcional
+    private BigDecimal descuento; // Opcional
 
     @NotEmpty(message = "Debe agregar al menos un producto")
     @Valid

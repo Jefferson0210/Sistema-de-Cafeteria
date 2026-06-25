@@ -70,6 +70,7 @@ public class ReservaService {
     }
 
     public List<Reserva> listarTodas() { return reservaRepository.findAll(); }
+    public org.springframework.data.domain.Page<Reserva> listarTodas(org.springframework.data.domain.Pageable pageable) { return reservaRepository.findAll(pageable); }
     public List<Reserva> listarPorUsuario(Long uid) { return reservaRepository.findByUsuario_Id(uid); }
     public List<Reserva> listarPorMesa(Long mid) { return reservaRepository.findByMesa_Id(mid); }
     public List<Reserva> listarPorEstado(EstadoReserva e) { return reservaRepository.findByEstado(e); }

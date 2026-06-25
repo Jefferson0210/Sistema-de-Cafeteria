@@ -7,6 +7,7 @@ package tics.uide.gestionuide.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import java.util.Date;
 import javax.persistence.*;
 import javax.validation.constraints.NotNull;
@@ -57,7 +58,7 @@ public class Pago implements Serializable {
     @NotNull(message = "El monto es obligatorio")
     @Positive(message = "El monto debe ser positivo")
     @Column(nullable = false, precision = 10, scale = 2)
-    private Double monto;
+    private BigDecimal monto;
 
     @Column(length = 100)
     private String referencia;

@@ -3,6 +3,8 @@ package tics.uide.gestionuide.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.io.Serializable;
+import java.math.BigDecimal;
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.ForeignKey;
 import javax.persistence.GeneratedValue;
@@ -39,11 +41,13 @@ public class DetalleFactura implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     
-    private Double precioUnitario;
-    
-    private Double cantidad;
-    
-    private Double subtotal;
+    @Column(precision = 10, scale = 2)
+    private BigDecimal precioUnitario;
+
+    private Double cantidad;            // cantidad: no es dinero, se mantiene Double
+
+    @Column(precision = 10, scale = 2)
+    private BigDecimal subtotal;
     
     @ManyToOne
     @JoinColumn(name = "producto", nullable = false, foreignKey = @ForeignKey(name = "PRODUCTO_DETALLE_FK"))

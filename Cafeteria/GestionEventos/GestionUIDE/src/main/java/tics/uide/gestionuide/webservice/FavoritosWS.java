@@ -8,7 +8,6 @@ import tics.uide.gestionuide.dto.ApiResponse;
 import tics.uide.gestionuide.service.FavoritoService;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/favoritos")
 public class FavoritosWS {
 

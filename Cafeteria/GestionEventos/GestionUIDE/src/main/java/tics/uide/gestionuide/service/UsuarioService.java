@@ -26,6 +26,12 @@ public class UsuarioService {
     @Autowired
     private RolService rolService;
 
+    @Autowired
+    private AuditService auditService;
+
+    @Autowired
+    private RefreshTokenService refreshTokenService;
+
     public Usuario buscarPorId(Long id) {
         return usuarioRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado con ID: " + id));
@@ -41,6 +47,11 @@ public class UsuarioService {
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado con email: " + email));
     }
 
+    /** Búsqueda por email que NO lanza (Optional). Útil para no marcar rollback-only en flujos silenciosos. */
+    public java.util.Optional<Usuario> buscarPorEmailOpcional(String email) {
+        return usuarioRepository.findByEmail(email);
+    }
+
     public Usuario buscarPorUsernameOEmail(String usernameOrEmail) {
         return usuarioRepository.findByUsernameOrEmail(usernameOrEmail, usernameOrEmail)
                 .orElseThrow(() -> new NotFoundException("Usuario no encontrado: " + usernameOrEmail));
@@ -48,6 +59,10 @@ public class UsuarioService {
 
     public List<Usuario> listarTodos() {
         return usuarioRepository.findAll();
+    }
+
+    public org.springframework.data.domain.Page<Usuario> listarTodos(org.springframework.data.domain.Pageable pageable) {
+        return usuarioRepository.findAll(pageable);
     }
 
     public List<Usuario> listarActivos() {
@@ -124,6 +139,10 @@ public class UsuarioService {
             throw new BadRequestException("Usuario inactivo");
         }
 
+        if (!Boolean.TRUE.equals(usuario.getEmailVerificado())) {
+            throw new BadRequestException("Debes verificar tu correo antes de iniciar sesión.");
+        }
+
         return usuario;
     }
     public void resetPassword(Long id, String nuevaPassword) {
@@ -173,6 +192,7 @@ public class UsuarioService {
                 .apellido(oauth2Dto.getApellido() != null ? oauth2Dto.getApellido() : "OAuth2")
                 .telefono(null)
                 .activo(true)
+                .emailVerificado(true)
                 .build();
 
         usuario = usuarioRepository.save(usuario);
@@ -229,6 +249,8 @@ public class UsuarioService {
 
         usuario.setPassword(encriptarPassword(passwordNueva));
         usuarioRepository.save(usuario);
+        // Seguridad: al cambiar la contraseña, se revocan todas las sesiones (refresh tokens) del usuario.
+        refreshTokenService.revocarTodos(id);
     }
 
     public Usuario cambiarEstado(Long id, boolean activo) {
@@ -244,6 +266,7 @@ public class UsuarioService {
     public void eliminar(Long id) {
         Usuario usuario = buscarPorId(id);
         usuarioRepository.delete(usuario);
+        auditService.registrar("USUARIO_ELIMINADO", "Usuario", id, "username=" + usuario.getUsername());
     }
 
     public boolean usernameDisponible(String username) {
@@ -267,5 +290,12 @@ public class UsuarioService {
     }
     public Usuario guardar(Usuario usuario) {
         return usuarioRepository.save(usuario);
+    }
+
+    /** Marca el email como verificado cargando el usuario managed (evita problemas de entity detached). */
+    public void marcarEmailVerificado(Long id) {
+        Usuario usuario = buscarPorId(id);
+        usuario.setEmailVerificado(true);
+        usuarioRepository.save(usuario);
     }
 }

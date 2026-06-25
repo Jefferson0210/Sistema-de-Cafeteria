@@ -70,6 +70,11 @@ public class Usuario implements Serializable {
     @Column(nullable = false)
     private Boolean activo = true;
 
+    // Doble opt-in: ¿confirmó su correo? (separado de 'activo', que es control de admin)
+    @Builder.Default
+    @Column(nullable = false)
+    private Boolean emailVerificado = false;
+
     @Temporal(TemporalType.TIMESTAMP)
     @Column(nullable = false, updatable = false)
     private Date fechaRegistro;

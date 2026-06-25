@@ -8,12 +8,14 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import tics.uide.gestionuide.dto.ApiResponse;
+import tics.uide.gestionuide.dto.PageMeta;
+import tics.uide.gestionuide.util.PageUtils;
+import org.springframework.data.domain.Page;
 import tics.uide.gestionuide.dto.ProductoDto;
 import tics.uide.gestionuide.model.Producto;
 import tics.uide.gestionuide.service.ProductoService;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/productos")
 public class ProductoWS {
 
@@ -21,8 +23,15 @@ public class ProductoWS {
     private ProductoService productoService;
 
     @GetMapping
-    public ResponseEntity<?> listarTodos() {
-        return ResponseEntity.ok(new ApiResponse(true, "Productos obtenidos", productoService.listarTodos()));
+    public ResponseEntity<?> listarTodos(
+            @RequestParam(required = false) Integer page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(defaultValue = "id,desc") String sort) {
+        if (page == null) {
+            return ResponseEntity.ok(new ApiResponse(true, "Productos obtenidos", productoService.listarTodos()));
+        }
+        Page<Producto> p = productoService.listarTodos(PageUtils.of(page, size, sort));
+        return ResponseEntity.ok(new ApiResponse(true, "Productos obtenidos", p.getContent(), new PageMeta(p)));
     }
 
     @GetMapping("/disponibles")

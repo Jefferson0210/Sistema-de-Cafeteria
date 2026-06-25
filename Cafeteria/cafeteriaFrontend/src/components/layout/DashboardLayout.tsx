@@ -14,7 +14,7 @@ export default function DashboardLayout({items,role}:{items:NavItem[];role:Rol})
       )}
       <Sidebar items={items} role={role} mobileOpen={sidebarOpen} onClose={()=>setSidebarOpen(false)}/>
       <TopBar onMenuClick={()=>setSidebarOpen(true)}/>
-      <main className="lg:ml-60 pt-16 p-4 sm:p-6 min-h-screen">
+      <main className="lg:ml-60 p-4 sm:p-6 min-h-screen" style={{paddingTop:'calc(env(safe-area-inset-top, 0px) + 4.5rem)'}}>
         <Outlet/>
       </main>
     </div>

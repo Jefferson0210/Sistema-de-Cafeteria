@@ -15,7 +15,6 @@ import tics.uide.gestionuide.service.CategoryService;
  * WebService de Categorías - Para React Native
  */
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/categorias")
 public class CategoryWS {
 

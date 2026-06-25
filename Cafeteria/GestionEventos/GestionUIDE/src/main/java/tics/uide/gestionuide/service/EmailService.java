@@ -19,6 +19,9 @@ public class EmailService {
     @Value("${spring.mail.username:cafeteria@uide.edu.ec}")
     private String fromEmail;
 
+    @Value("${app.frontend.url:http://localhost:5173}")
+    private String frontendUrl;
+
     // Email simple (texto)
     public void enviarTexto(String to, String subject, String body) {
         try {
@@ -79,7 +82,7 @@ public class EmailService {
             + "<li>Realizar pedidos desde tu celular</li>"
             + "<li>Reservar mesas</li>"
             + "<li>Guardar tus platos favoritos</li></ul>"
-            + "<a href='http://localhost:3000' style='display:inline-block;background:#EAAA00;color:#333;text-decoration:none;padding:12px 30px;border-radius:8px;font-weight:bold;margin-top:15px;'>Ir al Menú</a>"
+            + "<a href='" + frontendUrl + "' style='display:inline-block;background:#EAAA00;color:#333;text-decoration:none;padding:12px 30px;border-radius:8px;font-weight:bold;margin-top:15px;'>Ir al Menú</a>"
             + "</div>"
             + "<div style='background:#f5f5f5;padding:15px;text-align:center;font-size:12px;color:#999;'>"
             + "© 2026 Cafetería UIDE — Universidad Internacional del Ecuador</div>"
@@ -87,18 +90,30 @@ public class EmailService {
         enviarHtml(email, "¡Bienvenido a Cafetería UIDE!", html);
     }
 
-    public void enviarCodigoRecuperacion(String email, String nombre, String codigo) {
+    public void enviarEnlaceRecuperacion(String email, String nombre, String enlace) {
         String html = "<!DOCTYPE html><html><body style='font-family:Arial,sans-serif;background:#f9f9f9;padding:40px;'>"
             + "<div style='max-width:500px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.1);'>"
             + "<div style='background:linear-gradient(135deg,#910048,#002D72);padding:30px;text-align:center;'>"
-            + "<h1 style='color:#EAAA00;margin:0;font-size:24px;'>🔐 Recuperar Contraseña</h1></div>"
+            + "<h1 style='color:#EAAA00;margin:0;font-size:24px;'>🔐 Restablecer Contraseña</h1></div>"
             + "<div style='padding:30px;text-align:center;'>"
-            + "<p style='color:#666;'>Hola <strong>" + nombre + "</strong>, tu código de recuperación es:</p>"
-            + "<div style='background:#f5f5f5;border-radius:12px;padding:20px;margin:20px 0;'>"
-            + "<span style='font-size:36px;font-weight:bold;letter-spacing:8px;color:#910048;'>" + codigo + "</span></div>"
-            + "<p style='color:#999;font-size:13px;'>Este código expira en 15 minutos.<br>Si no solicitaste esto, ignora este email.</p>"
+            + "<p style='color:#666;'>Hola <strong>" + nombre + "</strong>, recibimos una solicitud para restablecer tu contraseña.</p>"
+            + "<a href='" + enlace + "' style='display:inline-block;background:#EAAA00;color:#333;text-decoration:none;padding:12px 30px;border-radius:8px;font-weight:bold;margin:20px 0;'>Restablecer contraseña</a>"
+            + "<p style='color:#999;font-size:13px;'>Este enlace expira en 1 hora y solo puede usarse una vez.<br>Si no solicitaste esto, ignora este email.</p>"
             + "</div></div></body></html>";
-        enviarHtml(email, "Código de recuperación — Cafetería UIDE", html);
+        enviarHtml(email, "Restablecer contraseña — Cafetería UIDE", html);
+    }
+
+    public void enviarEnlaceVerificacion(String email, String nombre, String enlace) {
+        String html = "<!DOCTYPE html><html><body style='font-family:Arial,sans-serif;background:#f9f9f9;padding:40px;'>"
+            + "<div style='max-width:500px;margin:0 auto;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(0,0,0,0.1);'>"
+            + "<div style='background:linear-gradient(135deg,#910048,#002D72);padding:30px;text-align:center;'>"
+            + "<h1 style='color:#EAAA00;margin:0;font-size:24px;'>✉️ Verifica tu correo</h1></div>"
+            + "<div style='padding:30px;text-align:center;'>"
+            + "<p style='color:#666;'>Hola <strong>" + nombre + "</strong>, confirma tu correo para activar tu cuenta de Cafetería UIDE.</p>"
+            + "<a href='" + enlace + "' style='display:inline-block;background:#EAAA00;color:#333;text-decoration:none;padding:12px 30px;border-radius:8px;font-weight:bold;margin:20px 0;'>Verificar mi correo</a>"
+            + "<p style='color:#999;font-size:13px;'>Este enlace expira en 24 horas.<br>Si no creaste esta cuenta, ignora este email.</p>"
+            + "</div></div></body></html>";
+        enviarHtml(email, "Verifica tu correo — Cafetería UIDE", html);
     }
 
     public void enviarFactura(String email, String nombre, String numFactura, File pdfFile) {

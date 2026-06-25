@@ -15,7 +15,6 @@ import tics.uide.gestionuide.service.ReservaService;
  * Antes solo tenía crear, listarPorUsuario, confirmar
  */
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/api/reservas")
 public class ReservaWS {
 

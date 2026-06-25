@@ -16,6 +16,7 @@ import tics.uide.gestionuide.exception.NotFoundException;
 import tics.uide.gestionuide.model.Category;
 import tics.uide.gestionuide.model.Producto;
 import tics.uide.gestionuide.repository.ProductoRepository;
+import tics.uide.gestionuide.util.Money;
 
 @Service
 @Transactional
@@ -27,6 +28,9 @@ public class ProductoService {
     @Autowired
     private CategoryService categoryService;
 
+    @Autowired
+    private AuditService auditService;
+
     public Producto crear(ProductoDto dto) {
         Category category = null;
         if (dto.getCategoryId() != null) {
@@ -36,7 +40,7 @@ public class ProductoService {
         Producto producto = Producto.builder()
                 .nombre(dto.getNombre())
                 .descripcion(dto.getDescripcion())
-                .precio(dto.getPrecio())
+                .precio(Money.scale(dto.getPrecio()))
                 .category(category)
                 .stock(dto.getStock() != null ? dto.getStock() : 0)
                 .disponible(true)
@@ -51,7 +55,7 @@ public class ProductoService {
 
         producto.setNombre(dto.getNombre());
         producto.setDescripcion(dto.getDescripcion());
-        producto.setPrecio(dto.getPrecio());
+        producto.setPrecio(Money.scale(dto.getPrecio()));
 
         if (dto.getCategoryId() != null) {
             Category category = categoryService.buscarPorId(dto.getCategoryId());
@@ -70,6 +74,7 @@ public class ProductoService {
     public void eliminar(Long id) {
         Producto producto = buscarPorId(id);
         productoRepository.delete(producto);
+        auditService.registrar("PRODUCTO_ELIMINADO", "Producto", id, "nombre=" + producto.getNombre());
     }
 
     public Producto actualizarImagen(Long id, MultipartFile archivo) throws IOException {
@@ -100,6 +105,10 @@ public class ProductoService {
 
     public List<Producto> listarTodos() {
         return productoRepository.findAll();
+    }
+
+    public org.springframework.data.domain.Page<Producto> listarTodos(org.springframework.data.domain.Pageable pageable) {
+        return productoRepository.findAll(pageable);
     }
 
     public List<Producto> listarDisponibles() {

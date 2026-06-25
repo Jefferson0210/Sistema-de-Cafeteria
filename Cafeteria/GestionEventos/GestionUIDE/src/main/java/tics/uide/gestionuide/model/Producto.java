@@ -4,6 +4,8 @@
  */
 package tics.uide.gestionuide.model;
 
+import java.math.BigDecimal;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.io.Serializable;
@@ -48,6 +50,11 @@ public class Producto implements Serializable {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_producto")
     private Long id;
+
+    // Bloqueo optimista: evita lost-updates de stock en pedidos concurrentes
+    @Version
+    @Column(nullable = false)
+    private Long version;
     
     @NotBlank(message = "El nombre del producto es obligatorio")
     @Size(min = 2, max = 100, message = "El nombre debe tener entre 2 y 100 caracteres")
@@ -60,7 +67,7 @@ public class Producto implements Serializable {
     @NotNull(message = "El precio es obligatorio")
     @Positive(message = "El precio debe ser positivo")
     @Column(nullable = false, precision = 10, scale = 2)
-    private Double precio;
+    private BigDecimal precio;
     
     // Relación con Category
     @ManyToOne(fetch = FetchType.EAGER)

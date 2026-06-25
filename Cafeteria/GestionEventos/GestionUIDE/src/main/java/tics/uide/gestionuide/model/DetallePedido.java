@@ -7,6 +7,7 @@ package tics.uide.gestionuide.model;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import java.io.Serializable;
+import java.math.BigDecimal;
 import javax.persistence.*;
 import javax.validation.constraints.Min;
 import javax.validation.constraints.NotNull;
@@ -17,6 +18,7 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
+import tics.uide.gestionuide.util.Money;
 
 /**
  * Entidad que representa el detalle de un pedido (productos del pedido)
@@ -57,10 +59,10 @@ public class DetallePedido implements Serializable {
     private Integer cantidad;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private Double precioUnitario;
+    private BigDecimal precioUnitario;
 
     @Column(nullable = false, precision = 10, scale = 2)
-    private Double subtotal;
+    private BigDecimal subtotal;
 
     @Column(length = 255)
     private String notas;
@@ -69,7 +71,7 @@ public class DetallePedido implements Serializable {
     @PreUpdate
     protected void calcularSubtotal() {
         if (cantidad != null && precioUnitario != null) {
-            subtotal = cantidad * precioUnitario;
+            subtotal = Money.multiply(precioUnitario, cantidad);
         }
     }
 }
